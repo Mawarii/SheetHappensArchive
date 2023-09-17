@@ -20,14 +20,14 @@ func Authenticate(c echo.Context) error {
 	var user model.User
 	result := database.DB().Where("username = ?", username).First(&user)
 	if result.Error == gorm.ErrRecordNotFound {
-		return c.String(http.StatusUnauthorized, "Invalid username or password")
+		return c.String(http.StatusUnauthorized, "Invalid login")
 	} else if result.Error != nil {
 		return c.String(http.StatusInternalServerError, "Database error")
 	}
 
 	// Einfacher Passwort-Check: Überprüfen Sie, ob das eingegebene Passwort dem in der Datenbank gespeicherten Passwort entspricht
 	if password != user.Password {
-		return c.String(http.StatusUnauthorized, "Invalid username or password")
+		return c.String(http.StatusUnauthorized, "Invalid login")
 	}
 
 	// Hier können Sie eine Sitzung starten oder einen Token generieren, um den Benutzer anzumelden
