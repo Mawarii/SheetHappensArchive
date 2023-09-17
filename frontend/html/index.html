@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charakter Management</title>
+    <!-- Fügen Sie Vue.js hinzu -->
+    <script type="module" src="/static/js/main.js"></script>
+    <!-- Fügen Sie das CSS-Stylesheet hinzu -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div id="app" class="container">
+        <h1 class="title">Charakter Management</h1>
+        
+        <!-- Form for creating a new character -->
+        <div class="form-section">
+            <h2>Neuen Charakter erstellen</h2>
+            <form @submit.prevent="createCharacter" class="form">
+                <label for="name" class="label">Name:</label>
+                <input type="text" v-model="newCharacter.name" required class="input">
+                <label for="race" class="label">Race:</label>
+                <input type="text" v-model="newCharacter.race" class="input">
+                <button type="submit" class="button">Charakter erstellen</button>
+            </form>
+        </div>
+
+        <!-- List of all characters -->
+        <div class="characters-section">
+            <h2>Charactere</h2>
+            <li v-if="characters.length === 0">Keine Charaktere vorhanden</li>
+            <ul id="characterList" class="character-list">
+                <li v-for="character in characters" :key="character.id">
+                    {{ character.name }} ({{ character.race }})
+                    <i class="fas fa-trash" @click="deleteCharacter(character.id)"></i>
+                </li>
+            </ul>            
+            <button @click="getAllCharacters" class="button">Reload</button>
+        </div>
+    </div>
+</body>
+</html>

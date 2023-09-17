@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    container_name: db
+    network_mode: host
+    expose:
+      - 5432
+    env_file:
+      - .env
