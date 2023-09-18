@@ -14,10 +14,6 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	e.Use(middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
-		return username == "yourusername" && password == "yourpassword", nil
-	}))
-
 	e.Static("/static", "frontend")
 
 	e.GET("/", func(c echo.Context) error {
