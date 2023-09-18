@@ -5,6 +5,7 @@ import (
 	"os"
 	"sheethappens/backend/model"
 
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -13,9 +14,9 @@ var database *gorm.DB
 var err error
 
 func DatabaseInit() {
-	// if err := godotenv.Load(); err != nil {
-	// 	panic("Error loading the .env file")
-	// }
+	if err := godotenv.Load(); err != nil {
+		panic("Error loading the .env file")
+	}
 
 	host := os.Getenv("POSTGRES_HOST")
 	username := os.Getenv("POSTGRES_USER")
