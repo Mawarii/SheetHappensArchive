@@ -9,7 +9,7 @@ services:
     env_file:
       - .env
 
-  sheethappens:
+  app:
     build: .
     restart: unless-stopped
     container_name: sheethappens
