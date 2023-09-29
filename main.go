@@ -30,6 +30,9 @@ func main() {
 		panic(err)
 	}
 
+	e.GET("/register", controller.Register)
+	e.POST("/register", controller.RegisterUser)
+
 	e.GET("/login", controller.Login)
 	e.POST("/login", controller.Authenticate)
 

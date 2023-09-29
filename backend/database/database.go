@@ -31,13 +31,6 @@ func DatabaseInit() {
 	database.AutoMigrate(&model.Character{})
 	database.AutoMigrate(&model.User{})
 
-	var existingUser model.User
-	result := database.First(&existingUser, "username = ?", "Test")
-	if result.Error != nil {
-		newUser := model.User{Username: "test", Password: "test"}
-		database.Create(&newUser)
-	}
-
 	if err != nil {
 		panic(err)
 	}
