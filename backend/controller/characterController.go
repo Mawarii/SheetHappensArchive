@@ -5,10 +5,14 @@ import (
 	"sheethappens/backend/database"
 	"sheethappens/backend/model"
 
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 )
 
 func CreateCharacter(c echo.Context) error {
+	sess, _ := session.Get("session", c)
+	userID, _ := sess.Values["userID"].(int)
+
 	b := new(model.Character)
 	db := database.DB()
 
@@ -21,8 +25,9 @@ func CreateCharacter(c echo.Context) error {
 	}
 
 	character := &model.Character{
-		Name: b.Name,
-		Race: b.Race,
+		UserID: userID,
+		Name:   b.Name,
+		Race:   b.Race,
 	}
 
 	if err := db.Create(&character).Error; err != nil {
@@ -41,6 +46,9 @@ func CreateCharacter(c echo.Context) error {
 }
 
 func UpdateCharacter(c echo.Context) error {
+	sess, _ := session.Get("session", c)
+	userID, _ := sess.Values["userID"].(int)
+
 	id := c.Param("id")
 	b := new(model.Character)
 	db := database.DB()
@@ -55,7 +63,7 @@ func UpdateCharacter(c echo.Context) error {
 
 	existingChar := new(model.Character)
 
-	if err := db.First(&existingChar, id).Error; err != nil {
+	if err := db.Where("user_id = ?", userID).First(&existingChar, id).Error; err != nil {
 		data := map[string]interface{}{
 			"error": "Character not found.",
 		}
@@ -81,12 +89,15 @@ func UpdateCharacter(c echo.Context) error {
 }
 
 func GetCharacter(c echo.Context) error {
+	sess, _ := session.Get("session", c)
+	userID, _ := sess.Values["userID"].(int)
+
 	id := c.Param("id")
 	db := database.DB()
 
 	var chars []*model.Character
 
-	if res := db.Find(&chars, id); res.Error != nil {
+	if res := db.Where("user_id = ?", userID).Find(&chars, id); res.Error != nil {
 		data := map[string]interface{}{
 			"error": "Failed to retrieve characters.",
 		}
@@ -106,12 +117,15 @@ func GetCharacter(c echo.Context) error {
 }
 
 func DeleteCharacter(c echo.Context) error {
+	sess, _ := session.Get("session", c)
+	userID, _ := sess.Values["userID"].(int)
+
 	id := c.Param("id")
 	db := database.DB()
 
 	character := new(model.Character)
 
-	err := db.Delete(&character, id).Error
+	err := db.Where("user_id = ?", userID).Delete(&character, id).Error
 	if err != nil {
 		data := map[string]interface{}{
 			"error": "Failed to delete the character.",
@@ -127,11 +141,14 @@ func DeleteCharacter(c echo.Context) error {
 }
 
 func GetAllCharacters(c echo.Context) error {
+	sess, _ := session.Get("session", c)
+	userID, _ := sess.Values["userID"].(int)
+
 	db := database.DB()
 
 	var chars []*model.Character
 
-	if res := db.Find(&chars); res.Error != nil {
+	if res := db.Where("user_id = ?", userID).Find(&chars); res.Error != nil {
 		data := map[string]interface{}{
 			"message": res.Error.Error(),
 		}

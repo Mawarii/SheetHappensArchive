@@ -1,10 +1,10 @@
 package main
 
 import (
-	"net/http"
 	"os"
 	"sheethappens/backend/controller"
 	"sheethappens/backend/database"
+	"sheethappens/backend/handler"
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
@@ -14,6 +14,8 @@ import (
 
 func main() {
 	sessionSecret := os.Getenv("SECRET")
+
+	echo.NotFoundHandler = handler.NotFoundHandler()
 
 	e := echo.New()
 
@@ -39,31 +41,19 @@ func main() {
 	e.GET("/register", controller.Register)
 	e.POST("/register", controller.RegisterUser)
 
-	restriced := e.Group("/character")
-	restriced.Use(checkSessionToken)
+	restriced := e.Group("/main")
+	restriced.Use(handler.CheckSessionToken)
 
-	restriced.GET("", func(c echo.Context) error {
+	restriced.GET("/character", func(c echo.Context) error {
 		return c.File("frontend/html/index.html")
 	}).Name = "character"
-	restriced.POST("", controller.GetAllCharacters)
-	restriced.GET("/:id", controller.GetCharacter)
-	restriced.PUT("/:id", controller.UpdateCharacter)
-	restriced.DELETE("/:id", controller.DeleteCharacter)
+	restriced.POST("/character", controller.CreateCharacter)
 
-	e.GET("/characters", controller.GetAllCharacters)
+	restriced.GET("/character/:id", controller.GetCharacter)
+	restriced.PUT("/character/:id", controller.UpdateCharacter)
+	restriced.DELETE("/character/:id", controller.DeleteCharacter)
+
+	restriced.GET("/character/list", controller.GetAllCharacters)
 
 	e.Logger.Fatal(e.Start(":8080"))
-}
-
-func checkSessionToken(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		sess, _ := session.Get("session", c)
-		username, ok := sess.Values["username"].(string)
-
-		if ok && username != "" {
-			return next(c)
-		}
-
-		return c.Redirect(http.StatusSeeOther, "/")
-	}
 }

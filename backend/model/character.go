@@ -1,7 +1,13 @@
 package model
 
+import (
+	"gorm.io/gorm"
+)
+
 type Character struct {
-	ID   int    `gorm:"primaryKey" json:"id"`
-	Name string `json:"name"`
-	Race string `json:"race"`
+	gorm.Model
+	ID     int    `gorm:"primaryKey" json:"id"`
+	Name   string `json:"name"`
+	Race   string `json:"race"`
+	UserID int    `gorm:"foreignKey:UserID" json:"user_id"`
 }

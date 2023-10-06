@@ -69,28 +69,22 @@ func Authenticate(c echo.Context) error {
 	result := database.DB().Where("username = ?", username).First(&user)
 
 	if result.Error == nil && comparePassword(user.Password, password) {
-		// Authentifizierung erfolgreich
 
-		// Erstellen Sie oder aktualisieren Sie die Sitzung mit dem Benutzernamen
 		sess, _ := session.Get("session", c)
 		sess.Options = &sessions.Options{
 			Path:     "/",
-			MaxAge:   86400 * 7,
+			MaxAge:   86400 * 365 * 100,
 			HttpOnly: true,
 		}
 
-		// Speichern Sie den Benutzernamen in der Sitzung
-		sess.Values["username"] = username
+		sess.Values["userID"] = user.ID
 
 		if err := sess.Save(c.Request(), c.Response()); err != nil {
-			// Behandeln Sie den Fehler, wenn die Sitzung nicht gespeichert werden kann
 			return err
 		}
 
-		// Nach erfolgreicher Authentifizierung weiterleiten
 		return c.Redirect(http.StatusMovedPermanently, c.Echo().Reverse("character"))
 	}
 
-	// Authentifizierung fehlgeschlagen
 	return c.String(http.StatusUnauthorized, "Invalid login")
 }
