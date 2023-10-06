@@ -1,0 +1,4 @@
+- Skill list of all skills of already existing characters.
+- Functionality to share characters (possibly entire groups) with other users.
+- Dashboard for all characters.
+- List and Grid views.

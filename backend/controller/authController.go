@@ -6,9 +6,10 @@ import (
 	"sheethappens/backend/database"
 	"sheethappens/backend/model"
 
+	"github.com/gorilla/sessions"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
 func Register(c echo.Context) error {
@@ -16,31 +17,26 @@ func Register(c echo.Context) error {
 }
 
 func RegisterUser(c echo.Context) error {
-	// Read user data from the request
 	username := c.FormValue("username")
 	password := c.FormValue("password")
 
-	// Check if the user already exists
 	var existingUser model.User
 	result := database.DB().Where("username = ?", username).First(&existingUser)
 	if result.Error == nil {
 		return c.String(http.StatusConflict, "Username already taken")
 	}
 
-	// Hash the password using Argon2
 	hashedPassword, err := hashPassword(password)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Password hashing failed")
 	}
 
-	// Create a new user and save it in the database
 	newUser := model.User{
 		Username: username,
 		Password: hashedPassword,
 	}
 
 	if err := database.DB().Create(&newUser).Error; err != nil {
-		// Log the error for debugging
 		fmt.Printf("Error creating user: %v\n", err)
 		return c.String(http.StatusInternalServerError, "Registration failed")
 	}
@@ -49,7 +45,6 @@ func RegisterUser(c echo.Context) error {
 }
 
 func hashPassword(password string) (string, error) {
-	// Generieren Sie einen Hash des Passworts mit bcrypt
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err
@@ -58,7 +53,6 @@ func hashPassword(password string) (string, error) {
 }
 
 func comparePassword(hashedPassword string, password string) bool {
-	// Vergleichen Sie das gehashte Passwort mit dem eingegebenen Passwort
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	return err == nil
 }
@@ -73,15 +67,30 @@ func Authenticate(c echo.Context) error {
 
 	var user model.User
 	result := database.DB().Where("username = ?", username).First(&user)
-	if result.Error == gorm.ErrRecordNotFound {
-		return c.String(http.StatusUnauthorized, "Invalid login")
-	} else if result.Error != nil {
-		return c.String(http.StatusInternalServerError, "Database error")
+
+	if result.Error == nil && comparePassword(user.Password, password) {
+		// Authentifizierung erfolgreich
+
+		// Erstellen Sie oder aktualisieren Sie die Sitzung mit dem Benutzernamen
+		sess, _ := session.Get("session", c)
+		sess.Options = &sessions.Options{
+			Path:     "/",
+			MaxAge:   86400 * 7,
+			HttpOnly: true,
+		}
+
+		// Speichern Sie den Benutzernamen in der Sitzung
+		sess.Values["username"] = username
+
+		if err := sess.Save(c.Request(), c.Response()); err != nil {
+			// Behandeln Sie den Fehler, wenn die Sitzung nicht gespeichert werden kann
+			return err
+		}
+
+		// Nach erfolgreicher Authentifizierung weiterleiten
+		return c.Redirect(http.StatusMovedPermanently, c.Echo().Reverse("character"))
 	}
 
-	if !comparePassword(user.Password, password) {
-		return c.String(http.StatusUnauthorized, "Invalid login")
-	}
-
-	return c.String(http.StatusOK, "Login successful")
+	// Authentifizierung fehlgeschlagen
+	return c.String(http.StatusUnauthorized, "Invalid login")
 }
