@@ -10,7 +10,7 @@ import (
 func CheckSessionToken(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		sess, _ := session.Get("session", c)
-		userID, ok := sess.Values["userID"].(int)
+		userID, ok := sess.Values["userID"].(uint)
 
 		if ok && userID != 0 {
 			return next(c)

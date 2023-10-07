@@ -15,8 +15,6 @@ import (
 func main() {
 	sessionSecret := os.Getenv("SECRET")
 
-	echo.NotFoundHandler = handler.NotFoundHandler()
-
 	e := echo.New()
 
 	e.Use(middleware.Logger())
@@ -44,15 +42,14 @@ func main() {
 	restriced := e.Group("/main")
 	restriced.Use(handler.CheckSessionToken)
 
+	// character
 	restriced.GET("/character", func(c echo.Context) error {
 		return c.File("frontend/html/index.html")
 	}).Name = "character"
 	restriced.POST("/character", controller.CreateCharacter)
-
 	restriced.GET("/character/:id", controller.GetCharacter)
 	restriced.PUT("/character/:id", controller.UpdateCharacter)
 	restriced.DELETE("/character/:id", controller.DeleteCharacter)
-
 	restriced.GET("/character/list", controller.GetAllCharacters)
 
 	e.Logger.Fatal(e.Start(":8080"))

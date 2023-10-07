@@ -4,17 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body>
-    <h1>Register</h1>
-    <form action="/register" method="POST">
-        <label for="username">Benutzername:</label>
-        <input type="text" id="username" name="username" required>
-        <br>
-        <label for="password">Passwort:</label>
-        <input type="password" id="password" name="password" required>
-        <br>
-        <input type="submit" value="Registrieren">
-    </form>    
+    <div id="app" class="container">
+        <h1 class="title">Charakter Management - Register</h1>
+        
+        <div class="form-section">
+            <h2>Register</h2>
+            <form action="/register" method="POST">
+                <label for="username" class="label">Benutzername:</label>
+                <input type="text" id="username" name="username" required class="input">
+                <label for="password" class="label">Passwort:</label>
+                <input type="password" id="password" name="password" required class="input">
+                <button type="submit" class="button">Registrieren</button>
+            </form>
+        </div>    
+    </div>
 </body>
 </html>

@@ -11,7 +11,7 @@ import (
 
 func CreateCharacter(c echo.Context) error {
 	sess, _ := session.Get("session", c)
-	userID, _ := sess.Values["userID"].(int)
+	userID, _ := sess.Values["userID"].(uint)
 
 	b := new(model.Character)
 	db := database.DB()
@@ -25,9 +25,9 @@ func CreateCharacter(c echo.Context) error {
 	}
 
 	character := &model.Character{
-		UserID: userID,
 		Name:   b.Name,
 		Race:   b.Race,
+		UserID: userID,
 	}
 
 	if err := db.Create(&character).Error; err != nil {
@@ -43,6 +43,63 @@ func CreateCharacter(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusCreated, response)
+}
+
+func GetCharacter(c echo.Context) error {
+	sess, _ := session.Get("session", c)
+	userID, _ := sess.Values["userID"].(int)
+
+	id := c.Param("id")
+	db := database.DB()
+
+	var chars []*model.Character
+
+	if res := db.Where("user_id = ?", userID).Find(&chars, id); res.Error != nil {
+		data := map[string]interface{}{
+			"error": "Failed to retrieve character.",
+		}
+
+		return c.JSON(http.StatusInternalServerError, data)
+	}
+
+	if len(chars) == 0 {
+		return c.JSON(http.StatusNotFound, "Character not found.")
+	}
+
+	response := map[string]interface{}{
+		"data": chars[0],
+	}
+
+	return c.JSON(http.StatusOK, response)
+}
+
+func GetAllCharacters(c echo.Context) error {
+	sess, _ := session.Get("session", c)
+	userID, _ := sess.Values["userID"].(int)
+
+	db := database.DB()
+
+	var chars []*model.Character
+
+	if res := db.Where("user_id = ?", userID).Find(&chars); res.Error != nil {
+		data := map[string]interface{}{
+			"error": res.Error.Error(),
+		}
+		return c.JSON(http.StatusOK, data)
+	}
+
+	if len(chars) == 0 {
+		response := map[string]interface{}{
+			"message": "No Characters found.",
+		}
+		return c.JSON(http.StatusOK, response)
+	}
+
+	response := map[string]interface{}{
+		"data": chars,
+	}
+
+	return c.JSON(http.StatusOK, response)
 }
 
 func UpdateCharacter(c echo.Context) error {
@@ -88,34 +145,6 @@ func UpdateCharacter(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
-func GetCharacter(c echo.Context) error {
-	sess, _ := session.Get("session", c)
-	userID, _ := sess.Values["userID"].(int)
-
-	id := c.Param("id")
-	db := database.DB()
-
-	var chars []*model.Character
-
-	if res := db.Where("user_id = ?", userID).Find(&chars, id); res.Error != nil {
-		data := map[string]interface{}{
-			"error": "Failed to retrieve characters.",
-		}
-
-		return c.JSON(http.StatusInternalServerError, data)
-	}
-
-	if len(chars) == 0 {
-		return c.JSON(http.StatusNotFound, "No characters found.")
-	}
-
-	response := map[string]interface{}{
-		"data": chars[0],
-	}
-
-	return c.JSON(http.StatusOK, response)
-}
-
 func DeleteCharacter(c echo.Context) error {
 	sess, _ := session.Get("session", c)
 	userID, _ := sess.Values["userID"].(int)
@@ -130,39 +159,11 @@ func DeleteCharacter(c echo.Context) error {
 		data := map[string]interface{}{
 			"error": "Failed to delete the character.",
 		}
-
 		return c.JSON(http.StatusInternalServerError, data)
 	}
 
 	response := map[string]interface{}{
 		"message": "Character has been deleted successfully.",
 	}
-	return c.JSON(http.StatusOK, response)
-}
-
-func GetAllCharacters(c echo.Context) error {
-	sess, _ := session.Get("session", c)
-	userID, _ := sess.Values["userID"].(int)
-
-	db := database.DB()
-
-	var chars []*model.Character
-
-	if res := db.Where("user_id = ?", userID).Find(&chars); res.Error != nil {
-		data := map[string]interface{}{
-			"message": res.Error.Error(),
-		}
-
-		return c.JSON(http.StatusOK, data)
-	}
-
-	if len(chars) == 0 {
-		return c.JSON(http.StatusOK, "Keine Chars")
-	}
-
-	response := map[string]interface{}{
-		"data": chars,
-	}
-
 	return c.JSON(http.StatusOK, response)
 }
